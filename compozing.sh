@@ -69,10 +69,11 @@ push_latest(){
 
 artifact(){
   if [ ! -z $IMAGE ]; then
-    echo "$IMAGE" | tee /tmp/${BUILD}.IMAGE;
-    ls -la /tmp/${BUILD}.IMAGE;
+    mkdir -l /tmp/${BUILD}/;
+    ( echo "$IMAGE" | tee /tmp/${BUILD}/IMAGE ) || echo "failed export IMAGE" && exit 41;
+    ls -la /tmp/${BUILD}/IMAGE;
   else
-    echo "IMAGE is empty" && exit 32;
+    echo "IMAGE is empty" && exit 42;
   fi;
 };
 
