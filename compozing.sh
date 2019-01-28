@@ -14,7 +14,7 @@ fi;
 
 ## PROCEDURES ##
 values(){
-  export DOCKER_REPO=$(echo "$( echo ${REPO} | tr '[:upper:]' '[:lower:]' )/$( echo ${BRANCH} | tr -cd '[:alnum:]' )");
+  export DOCKER_REPO=$(echo "$( echo ${REPO} )/$( echo ${BRANCH} | tr -cd '[:alnum:]' )" | tr '[:upper:]' '[:lower:]' );
   export TAG="${BUILD}_$(echo ${COMMIT} | cut -c 1-7)";
   export IMAGE=$( echo "${DOCKER_REGISTRY}/${DOCKER_REPO}:${TAG}" )
   echo "IMAGE: $IMAGE";
