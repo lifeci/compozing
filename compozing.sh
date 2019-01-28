@@ -16,8 +16,8 @@ fi;
 values(){
   export DOCKER_REPO=$(echo "$( echo ${REPO} | tr '[:upper:]' '[:lower:]' )/$( echo ${BRANCH} | tr -cd '[:alnum:]' )");
   export TAG="${BUILD}_$(echo ${COMMIT} | cut -c 1-7)";
-  echo "BRANCHNAME: ${BRANCH}";
-  echo "$DOCKER_REGISTRY/$DOCKER_REPO/$TAG";
+  export IMAGE=$( echo "${DOCKER_REGISTRY}/${DOCKER_REPO}:${TAG}" )
+  echo "IMAGE: $IMAGE";
 };
 
 login(){
@@ -61,10 +61,19 @@ push(){
 };
 
 push_latest(){
-  export TAG=latest
-  echo "pushing with TAG: ${TAG}";
+  export TAG2=latest
+  echo "pushing with TAG: ${TAG2}";
   ( docker-compose build > /dev/null ) && docker-compose push || \
-        (echo "failed push ${TAG}" && exit 32);
+        (echo "failed push ${TAG2}" && exit 32);
+};
+
+artifact(){
+  if [ ! -z $IMAGE ]; then
+    echo "$IMAGE" | tee /tmp/${BUILD}.IMAGE;
+    ls -la /tmp/${BUILD}.IMAGE;
+  else
+    echo "IMAGE is empty" && exit 32;
+  fi;
 };
 
 cleanup(){
@@ -75,7 +84,7 @@ cleanup(){
 
 ## EXECUTION LOOP ##
 
-for action in values login check build up hc push push_latest; do
+for action in values login check build up hc push push_latest artifact; do
   printf "\n\n\t### START: $action ###\n"
   $action
   exitCode=$?;
