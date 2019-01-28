@@ -61,10 +61,10 @@ push(){
 };
 
 push_latest(){
-  export TAG2=latest
-  echo "pushing with TAG: ${TAG2}";
+  export TAG=latest
+  echo "pushing with TAG: ${TAG}";
   ( docker-compose build > /dev/null ) && docker-compose push || \
-        (echo "failed push ${TAG2}" && exit 32);
+        (echo "failed push ${TAG}" && exit 32);
 };
 
 artifact(){
