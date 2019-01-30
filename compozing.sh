@@ -61,6 +61,7 @@ push(){
 };
 
 push_latest(){
+  TAG_0=$TAG; # save original tag
   export TAG=latest
   echo "pushing with TAG: ${TAG}";
   ( docker-compose build > /dev/null ) && docker-compose push || \
@@ -70,10 +71,11 @@ push_latest(){
 artifact(){
   if [ ! -z $IMAGE ]; then
     mkdir -p /tmp/${BUILD}/;
-    ( echo "$IMAGE" | tee /tmp/${BUILD}/IMAGE ) || ( echo "failed export IMAGE" && exit 41 );
-    ls -la /tmp/${BUILD}/IMAGE;
+    echo "export IMAGE=$IMAGE" > /tmp/${BUILD}/VALUES || ( echo "failed export IMAGE" && exit 41 );
+    echo "export TAG=$TAG_0" >> /tmp/${BUILD}/VALUES || ( echo "failed export TAG" && exit 42 );
+    cat /tmp/${BUILD}/VALUES;
   else
-    echo "IMAGE is empty" && exit 42;
+    echo "IMAGE is empty" && exit 50;
   fi;
 };
 
