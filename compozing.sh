@@ -97,6 +97,8 @@ for action in values login check build up hc push push_latest artifact; do
   fi;
 done;
 
-printf "\n\t### CLEANUP: always ###\n"
+printf "\n\t### START: cleanup (always) ###\n"
 cleanup;  #always
+printf "\t### END: cleanup (always) ###\n"
+
 exit $exitCode
