@@ -2,9 +2,9 @@
 
 # Define spported modes
 declare -a CI;
-  CI=( values, login, check, build, up, hc );
+  CI=( values login check build  up  hc );
 declare -a CICD;
-  CICD=( ${CI[*]}, push, push_latest, artifact );
+  CICD=( ${CI[*]} push push_latest artifact );
 
 # Check variables
 if [ -z $DOCKER_REGISTRY ] || \
@@ -98,6 +98,7 @@ cleanup(){
 ## EXECUTION LOOP ##
 
 # choose actions
+printf "\n\t### START: MODE selection ###\n";
 declare -a ACTIONS;
 gitHEAD=$( git status | head -1 );
 if [[ "$gitHEAD" == *"pull/"*"merge"* ]]; then
@@ -107,13 +108,13 @@ else
   MODE="CICD";
   ACTIONS=${CICD[*]};
 fi;
-
 echo "MODE: $MODE | ACTIONS: ${ACTIONS[*]}";
+printf "\t### END: MODE selection ###\n";
 
 # runtime
 for action in ${ACTIONS[@]}; do
-  printf "\n\n\t### START: $action ###\n"
-  echo $action
+  printf "\n\n\t### START: $action ###\n";
+  $action
   exitCode=$?;
   if [ $exitCode != 0 ]; then
     printf "\t FAILED: $action with exitCode: $exitCode\n";
