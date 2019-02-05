@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Define spported modes
+declare -a CI;
+  CI=( values, login, check, build, up, hc );
+declare -a CICD;
+  CICD=( ${CI[*]}, push, push_latest, artifact );
+
 # Check variables
 if [ -z $DOCKER_REGISTRY ] || \
    [ -z $DOCKER_USER ] || \
@@ -82,14 +88,32 @@ artifact(){
 cleanup(){
   docker-compose down;
   docker logout ${DOCKER_REGISTRY};
+
+  printf "History entries $(history | wc -l) ";
+  ( cat /dev/null > ~/.bash_history ) && printf "has beeen CLEARED\n";
+  #history -c;
 };
 
 
 ## EXECUTION LOOP ##
 
-for action in values login check build up hc push push_latest artifact; do
+# choose actions
+declare -a ACTIONS;
+gitHEAD=$( git status | head -1 );
+if [[ "$gitHEAD" == *"pull/"*"merge"* ]]; then
+  MODE="CI";
+  ACTIONS=${CI[*]};
+else
+  MODE="CICD";
+  ACTIONS=${CICD[*]};
+fi;
+
+echo "MODE: $MODE | ACTIONS: ${ACTIONS[*]}";
+
+# runtime
+for action in ${ACTIONS[@]}; do
   printf "\n\n\t### START: $action ###\n"
-  $action
+  echo $action
   exitCode=$?;
   if [ $exitCode != 0 ]; then
     printf "\t FAILED: $action with exitCode: $exitCode\n";
