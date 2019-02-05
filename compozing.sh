@@ -20,10 +20,18 @@ values(){
        exit 2
   fi;
 
+  #do not include 'master' at docker image
   export DOCKER_REPO=$(echo "$( echo ${REPO} )/$( echo ${BRANCH} | tr -cd '[:alnum:]' )" | tr '[:upper:]' '[:lower:]' );
+  export DOCKER_REPO_ALT=$(echo "$( echo ${REPO} )" | tr '[:upper:]' '[:lower:]' );
+
   export TAG="${BUILD}_$(echo ${COMMIT} | cut -c 1-7)";
+  export TAG_ALT="${BUILD}-$( echo ${BRANCH} | tr -cd '[:alnum:]' | tr '[:upper:]' '[:lower:]' )-$(echo ${COMMIT} | cut -c 1-7)";
+
   export IMAGE=$( echo "${DOCKER_REGISTRY}/${DOCKER_REPO}:${TAG}" )
+  export IMAGE_ALT=$( echo "${DOCKER_REGISTRY}/${DOCKER_REPO_ALT}:${TAG_ALT}" )
+
   echo "IMAGE: $IMAGE";
+  echo "IMAGE_ALT: $IMAGE_ALT";
 };
 
 login(){
@@ -61,9 +69,25 @@ hc(){
 };
 
 push(){
-  echo "pusing with TAG: ${TAG}";
+
+  echo "pushing with TAG: ${TAG}";
   docker-compose push || \
-        (echo "failed push ${TAG}" && exit 31);
+        dP="FAILED push ${TAG}, 2nd try with $TAG_ALT";
+
+  echo "$dP";
+  if [ ! -z "$dP" ]; then
+    DOCKER_REPO=$DOCKER_REPO_ALT;
+    TAG=$TAG_ALT;
+    IMAGE=$IMAGE_ALT;
+    
+    docker-compose build > /dev/null;
+
+    echo "pushing with TAG: ${TAG}";
+    docker-compose push || \
+          (echo "failed push ${TAG}" && exit 31 );
+
+    artifact; #rewrite artifact with ALT naming
+  fi;
 };
 
 push_latest(){
