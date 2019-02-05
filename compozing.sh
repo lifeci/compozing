@@ -2,9 +2,9 @@
 
 # Define spported modes
 declare -a CI;
-  CI=( values login check build  up  hc );
+  CI=( values login check build  up  hc artifact );
 declare -a CICD;
-  CICD=( ${CI[*]} push push_latest artifact );
+  CICD=( ${CI[*]} push push_latest );
 
 ## PROCEDURES ##
 values(){
@@ -75,14 +75,26 @@ push_latest(){
 };
 
 artifact(){
-  if [ ! -z $IMAGE ]; then
-    mkdir -p /tmp/${BUILD}/;
-    echo "export IMAGE=$IMAGE" > /tmp/${BUILD}/VALUES || ( echo "failed export IMAGE" && exit 41 );
-    echo "export TAG=$TAG_0" >> /tmp/${BUILD}/VALUES || ( echo "failed export TAG" && exit 42 );
-    cat /tmp/${BUILD}/VALUES;
+  aFolder="/tmp/${BUILD}";
+  mkdir -p ${aFolder};
+  if [ $MODE == "CICD" ] && [ ! -z $IMAGE ]; then
+    echo "export IMAGE=$IMAGE" > ${aFolder}/VALUES || \
+                  ( echo "failed export IMAGE" && exit 41 );
+    echo "export TAG=$TAG_0" >> ${aFolder}/VALUES || \
+                  ( echo "failed export TAG" && exit 42 );
+  elif [ $MODE == "CI" ]; then
+    echo "MODE: $MODE"             > ${aFolder}/VALUES || \
+                  ( echo "failed export MODE" && exit 43 );
+    echo "gitHEAD: $gitHEAD"      >> ${aFolder}/VALUES || \
+                  ( echo "failed export gitHEAD" && exit 44 );
+    echo "ACTIONS: ${ACTIONS[*]}" >> ${aFolder}/VALUES || \
+                  ( echo "failed export ACTIONS" && exit 45 );
   else
     echo "IMAGE is empty" && exit 50;
   fi;
+
+  cat ${aFolder}/VALUES;
+
 };
 
 cleanup(){
@@ -108,7 +120,7 @@ else
   MODE="CICD";
   ACTIONS=${CICD[*]};
 fi;
-echo "git HEAD: $gitHEAD";
+echo "HEAD: $gitHEAD";
 echo "MODE: $MODE | ACTIONS: ${ACTIONS[*]}";
 printf "\t### END: MODE selection ###\n";
 
