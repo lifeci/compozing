@@ -6,20 +6,20 @@ declare -a CI;
 declare -a CICD;
   CICD=( ${CI[*]} push push_latest artifact );
 
-# Check variables
-if [ -z $DOCKER_REGISTRY ] || \
-   [ -z $DOCKER_USER ] || \
-   [ -z $DOCKER_PSWD ] || \
-   [ -z $REPO ] || \
-   [ -z $BRANCH ] || \
-   [ -z $COMMIT ] || \
-   [ -z $BUILD ]; then
-     echo "ensure that all variables sets";
-     exit 2
-fi;
-
 ## PROCEDURES ##
 values(){
+  # Check variables
+  if [ -z $DOCKER_REGISTRY ] || \
+     [ -z $DOCKER_USER ] || \
+     [ -z $DOCKER_PSWD ] || \
+     [ -z $REPO ] || \
+     [ -z $BRANCH ] || \
+     [ -z $COMMIT ] || \
+     [ -z $BUILD ]; then
+       echo "ensure that all variables sets";
+       exit 2
+  fi;
+
   export DOCKER_REPO=$(echo "$( echo ${REPO} )/$( echo ${BRANCH} | tr -cd '[:alnum:]' )" | tr '[:upper:]' '[:lower:]' );
   export TAG="${BUILD}_$(echo ${COMMIT} | cut -c 1-7)";
   export IMAGE=$( echo "${DOCKER_REGISTRY}/${DOCKER_REPO}:${TAG}" )
