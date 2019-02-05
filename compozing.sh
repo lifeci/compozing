@@ -80,7 +80,7 @@ artifact(){
   if [ $MODE == "CICD" ] && [ ! -z $IMAGE ]; then
     echo "export IMAGE=$IMAGE" > ${aFolder}/VALUES || \
                   ( echo "failed export IMAGE" && exit 41 );
-    echo "export TAG=$TAG_0" >> ${aFolder}/VALUES || \
+    echo "export TAG=$TAG" >> ${aFolder}/VALUES || \
                   ( echo "failed export TAG" && exit 42 );
   elif [ $MODE == "CI" ]; then
     echo "MODE: $MODE"             > ${aFolder}/VALUES || \
