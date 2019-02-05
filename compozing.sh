@@ -108,6 +108,7 @@ else
   MODE="CICD";
   ACTIONS=${CICD[*]};
 fi;
+echo "git HEAD: $gitHEAD";
 echo "MODE: $MODE | ACTIONS: ${ACTIONS[*]}";
 printf "\t### END: MODE selection ###\n";
 
