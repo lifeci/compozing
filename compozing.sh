@@ -73,13 +73,12 @@ push(){
   echo "pushing with TAG: ${TAG}";
   docker-compose push || \
         dP="FAILED push ${TAG}, 2nd try with $TAG_ALT";
-
-  echo "$dP";
   if [ ! -z "$dP" ]; then
+    echo "$dP";
     DOCKER_REPO=$DOCKER_REPO_ALT;
     TAG=$TAG_ALT;
     IMAGE=$IMAGE_ALT;
-    
+
     docker-compose build > /dev/null;
 
     echo "pushing with TAG: ${TAG}";
