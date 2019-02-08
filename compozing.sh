@@ -33,7 +33,7 @@ panic(){
     eval $execute_string;
   fi;
 
-  exit $exitCode;
+  return $exitCode;
 };
 
 values(){
@@ -215,7 +215,8 @@ for action in ${ACTIONS[@]}; do
   printf "\n\n\t### START: $action ###\n";
   $action
   exitCode=$?;
-  if [ $exitCode != 0 ]; then
+  #if [ $exitCode != 0 ]; then
+  if [ "$OK" == "false" ]; then
     printf "\t FAILED: $action with exitCode: $exitCode\n";
     break $exitCode;
   else
