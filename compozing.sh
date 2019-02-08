@@ -33,7 +33,7 @@ panic(){
     eval $execute_string;
   fi;
 
-  return $exitCode;
+  exit $exitCode;
 };
 
 values(){
@@ -118,8 +118,7 @@ hc(){
   ScriptUrl=https://raw.githubusercontent.com/lifeci/healthchecks/1.2/compose-all.sh
   #export  DelayInput=8;
   curl -Ssk $ScriptUrl | bash -f -- || \
-        panic "did not pass" 24;
-  echo "HC PASSED";
+        panic "did not pass" 24 "docker-compose logs";
 };
 
 push(){
