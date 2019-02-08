@@ -51,8 +51,8 @@ values(){
         if [ -z $BRANCH ] || \
            [ -z $COMMIT ] || \
            [ -z $BUILD ]; then
-             echo "ensure that all variables were set for MODE: $MODE";
-             exit 2
+             panic "ensure that all variables were set for MODE: $MODE" 2;
+             #exit 2
         fi;
       ;;
     CICD )
@@ -63,8 +63,8 @@ values(){
            [ -z $BRANCH ] || \
            [ -z $COMMIT ] || \
            [ -z $BUILD ]; then
-             echo "ensure that all variables were set for MODE: $MODE";
-             exit 2
+             panic "ensure that all variables were set for MODE: $MODE" 2;
+             #exit 2
         fi;
       ;;
   esac;
