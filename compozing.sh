@@ -8,7 +8,34 @@ declare -a CI;
 declare -a CICD;
   CICD=( ${CI[*]} push push_latest );
 
+## COLORS ##
+# Color output in bash https://goo.gl/DsMWYq
+  ERROR='\033[0;31m'; #RED
+  WARN='\033[0;33m'; # ORANGE
+  OK='\033[0;32m'; # GREEN
+  NC='\033[0m' # No Color
+#printf "Example output text in 'printf': ${ERROR}ERROR${NC} | ${OK}All good${NC} |  ${WARN}Warning/attention${NC}\n"
+
 ## PROCEDURES ##
+panic(){
+  MSG=$1;
+  exitCode=$2;
+  execute_string=$3
+
+  if [ -z $exitCode ]; then
+    exitCode='-1';
+  fi;
+  printf "${ERROR}FAILED: $action $MSG${NC}\n"
+  OK=false
+
+  if [ ! -z "$execute_string" ]; then
+    printf "${WARN}executing $execute_string${NC}\n";
+    eval $execute_string;
+  fi;
+
+  return $exitCode;
+};
+
 values(){
   # Check variables
   case $MODE in
@@ -60,7 +87,8 @@ login(){
   docker login ${DOCKER_REGISTRY} \
             -u ${DOCKER_USER} \
             -p ${DOCKER_PSWD} || \
-            (echo "failed login: $?" && exit 11);
+            panic "exitcode: $?" 11;
+            #(echo "failed login: $?" && exit 11);
 };
 
 check(){
@@ -70,26 +98,28 @@ check(){
     mode="--services"; #print service | '--quiet' only validate config without printing anything
   fi;
   docker-compose config $mode || \
-        (echo "failed config" && OK=false && exit 21);
+        panic "exitcode: $?" 21;
+        #(echo "failed config" && OK=false && exit 21);
 };
 
 build(){
   docker-compose build  || \
-        (echo "failed build" && check print && exit 22);
+        panic "exitcode: $?" 22 "check print; docker-compose logs"
+        #(echo "failed build" && check print && exit 22);
 };
 
 up(){
   docker-compose up -d || \
-        (echo "failed up" && check print && exit 23);
+        panic "exitcode: $?" 23 "check print; docker-compose logs"
+        #(echo "failed up" && check print && exit 23);
 };
 
 hc(){
   ScriptUrl=https://raw.githubusercontent.com/lifeci/healthchecks/1.2/compose-all.sh
   #export  DelayInput=8;
-   curl -Ssk $ScriptUrl | bash -f --  || \
-        echo "failed hc" && OK=false &&  exit 24;
-        #( echo "failed hc" && OK=false &&  exit 24 )
-  echo "HC PASSED"
+  curl -Ssk $ScriptUrl | bash -f -- || \
+        panic "did not pass" 24;
+  echo "HC PASSED";
 };
 
 push(){
@@ -98,7 +128,7 @@ push(){
   docker-compose push || \
         dP="FAILED push ${TAG}, 2nd try with $TAG_ALT";
   if [ ! -z "$dP" ]; then
-    echo "$dP";
+    prtinf "${WARN}$dP${NC}\n";
     DOCKER_REPO=$DOCKER_REPO_ALT;
     TAG=$TAG_ALT;
     IMAGE=$IMAGE_ALT;
@@ -107,8 +137,8 @@ push(){
 
     echo "pushing with TAG: ${TAG}";
     docker-compose push || \
-          (echo "failed push ${TAG}" && exit 31 );
-
+          panic "TAG: ${TAG}" 31
+          #(echo "failed push ${TAG}" && exit 31 );
     artifact; #rewrite artifact with ALT naming
   fi;
 };
@@ -118,7 +148,8 @@ push_latest(){
   export TAG=latest
   echo "pushing with TAG: ${TAG}";
   ( docker-compose build > /dev/null ) && docker-compose push || \
-        (echo "failed push ${TAG}" && exit 32);
+        panic "TAG: ${TAG}" 32
+        #(echo "failed push ${TAG}" && exit 32);
 };
 
 artifact(){
@@ -126,18 +157,23 @@ artifact(){
   mkdir -p ${aFolder};
   if [ $MODE == "CICD" ] && [ ! -z $IMAGE ]; then
     echo "export IMAGE=$IMAGE" > ${aFolder}/VALUES || \
-                  ( echo "failed export IMAGE" && exit 41 );
+                  panic "export IMAGE" 41;
+                  #( echo "failed export IMAGE" && exit 41 );
     echo "export TAG=$TAG" >> ${aFolder}/VALUES || \
-                  ( echo "failed export TAG" && exit 42 );
+                  panic "export TAG" 41;
+                  #( echo "failed export TAG" && exit 42 );
   elif [ $MODE == "CI" ]; then
     echo "MODE: $MODE"             > ${aFolder}/VALUES || \
-                  ( echo "failed export MODE" && exit 43 );
+                  panic "export MODE" 43;
+                  #( echo "failed export MODE" && exit 43 );
     echo "gitHEAD: $gitHEAD"      >> ${aFolder}/VALUES || \
-                  ( echo "failed export gitHEAD" && exit 44 );
+                  panic "export gitHEAD" 44;
+                  #( echo "failed export gitHEAD" && exit 44 );
     echo "ACTIONS: ${ACTIONS[*]}" >> ${aFolder}/VALUES || \
-                  ( echo "failed export ACTIONS" && exit 45 );
+                  panic "export ACTIONS" 45;
+                  #( echo "failed export ACTIONS" && exit 45 );
   else
-    echo "VALUES is empty" && exit 50;
+    panic "VALUES is empty" 50;
   fi;
 
   cat ${aFolder}/VALUES;
