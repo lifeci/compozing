@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Define spported modes
+# Define supported modes
+declare -a DRY;
+  DRY=( values check build  up  hc );
 declare -a CI;
   CI=( values login check build  up  hc artifact );
 declare -a CICD;
@@ -9,16 +11,36 @@ declare -a CICD;
 ## PROCEDURES ##
 values(){
   # Check variables
-  if [ -z $DOCKER_REGISTRY ] || \
-     [ -z $DOCKER_USER ] || \
-     [ -z $DOCKER_PSWD ] || \
-     [ -z $REPO ] || \
-     [ -z $BRANCH ] || \
-     [ -z $COMMIT ] || \
-     [ -z $BUILD ]; then
-       echo "ensure that all variables sets";
-       exit 2
-  fi;
+  case $MODE in
+    DRY )
+        DOCKER_REGISTRY=local
+        REPO=myapp
+        BRANCH=master
+        COMMIT=1234567890
+        BUILD=9876
+        echo "MODE: $MODE : setting default values";
+      ;;
+    CI )
+        if [ -z $BRANCH ] || \
+           [ -z $COMMIT ] || \
+           [ -z $BUILD ]; then
+             echo "ensure that all variables were set for MODE: $MODE";
+             exit 2
+        fi;
+      ;;
+    CICD )
+        if [ -z $DOCKER_REGISTRY ] || \
+           [ -z $DOCKER_USER ] || \
+           [ -z $DOCKER_PSWD ] || \
+           [ -z $REPO ] || \
+           [ -z $BRANCH ] || \
+           [ -z $COMMIT ] || \
+           [ -z $BUILD ]; then
+             echo "ensure that all variables were set for MODE: $MODE";
+             exit 2
+        fi;
+      ;;
+  esac;
 
   #do not include 'master' at docker image
   export DOCKER_REPO=$(echo "$( echo ${REPO} )/$( echo ${BRANCH} | tr -cd '[:alnum:]' )" | tr '[:upper:]' '[:lower:]' );
@@ -62,10 +84,12 @@ up(){
 };
 
 hc(){
-  ScriptUrl=https://raw.githubusercontent.com/lifeci/healthchecks/1.1/compose-all.sh
+  ScriptUrl=https://raw.githubusercontent.com/lifeci/healthchecks/1.2/compose-all.sh
   #export  DelayInput=8;
-  curl -Ssk $ScriptUrl | bash -f -- || \
-        (echo "failed hc" && OK=false && exit 24);
+   curl -Ssk $ScriptUrl | bash -f --  || \
+        echo "failed hc" && OK=false &&  exit 24;
+        #( echo "failed hc" && OK=false &&  exit 24 )
+  echo "HC PASSED"
 };
 
 push(){
@@ -113,7 +137,7 @@ artifact(){
     echo "ACTIONS: ${ACTIONS[*]}" >> ${aFolder}/VALUES || \
                   ( echo "failed export ACTIONS" && exit 45 );
   else
-    echo "IMAGE is empty" && exit 50;
+    echo "VALUES is empty" && exit 50;
   fi;
 
   cat ${aFolder}/VALUES;
@@ -136,9 +160,13 @@ cleanup(){
 printf "\n\t### START: MODE selection ###\n";
 declare -a ACTIONS;
 gitHEAD=$( git status | head -1 );
-if [[ "$gitHEAD" == *"pull/"*"merge"* ]]; then
+
+if [[ "$gitHEAD" == *"pull/"*"merge"* ]]  ; then
   MODE="CI";
   ACTIONS=${CI[*]};
+elif [ "$MODE" == "DRY" ]; then
+  MODE="DRY";
+  ACTIONS=${DRY[*]};
 else
   MODE="CICD";
   ACTIONS=${CICD[*]};
