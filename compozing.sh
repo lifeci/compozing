@@ -127,7 +127,7 @@ push(){
   docker-compose push || \
         dP="FAILED push ${TAG}, 2nd try with $TAG_ALT";
   if [ ! -z "$dP" ]; then
-    prtinf "${WARN}$dP${NC}\n";
+    printf "${WARN}$dP${NC}\n";
     DOCKER_REPO=$DOCKER_REPO_ALT;
     TAG=$TAG_ALT;
     IMAGE=$IMAGE_ALT;
