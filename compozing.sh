@@ -180,6 +180,8 @@ artifact(){
 };
 
 cleanup(){
+  export TAG=$TAG_0;
+  echo "reverting TAG to TAG_0 = $TAG and cleaning up"
   docker-compose down;
   docker logout ${DOCKER_REGISTRY};
 
