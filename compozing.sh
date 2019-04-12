@@ -180,9 +180,13 @@ artifact(){
 };
 
 cleanup(){
-  export TAG=$TAG_0;
-  echo "reverting TAG to TAG_0 = $TAG and cleaning up"
-  docker-compose down;
+  echo ":: compose ::";
+  # TAG latest
+  TAG=$TAG docker-compose down;
+  # TAG original TAG_0
+  TAG=$TAG_0 docker-compose down;
+
+  echo ":: logout ::";
   docker logout ${DOCKER_REGISTRY};
 
   printf "History entries $(history | wc -l) ";
