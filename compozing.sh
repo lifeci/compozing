@@ -37,6 +37,7 @@ panic(){
 };
 
 values(){
+  export TAG_LATEST=latest;
   # Check variables
   case $MODE in
     DRY )
@@ -81,6 +82,8 @@ values(){
 
   echo "IMAGE: $IMAGE";
   echo "IMAGE_ALT: $IMAGE_ALT";
+
+  export TAG_0=$TAG; # save original tag
 };
 
 login(){
@@ -143,8 +146,7 @@ push(){
 };
 
 push_latest(){
-  TAG_0=$TAG; # save original tag
-  export TAG=latest
+  export TAG=${TAG_LATEST}
   echo "pushing with TAG: ${TAG}";
   ( docker-compose build > /dev/null ) && docker-compose push || \
         panic "TAG: ${TAG}" 32
@@ -181,10 +183,10 @@ artifact(){
 
 cleanup(){
   echo ":: compose ::";
-  # TAG latest
-  TAG=$TAG docker-compose down;
   # TAG original TAG_0
   TAG=$TAG_0 docker-compose down;
+  # TAG latest
+  TAG=${TAG_LATEST} docker-compose down;
 
   echo ":: logout ::";
   docker logout ${DOCKER_REGISTRY};
