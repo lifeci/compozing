@@ -176,7 +176,7 @@ artifact(){
   else
     panic "VALUES is empty" 50;
   fi;
-
+  ls -la ${aFolder};
   cat ${aFolder}/VALUES;
 
 };
